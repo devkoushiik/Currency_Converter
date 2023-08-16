@@ -11,11 +11,13 @@ function App() {
 
   console.log(value, firstCountry, secondCountry);
   useEffect(() => {
+    const controller = new AbortController();
     const fetching = async () => {
       try {
         setIsLoading(true);
         const res = await fetch(
-          `https://api.frankfurter.app/latest?amount=${value}&from=${firstCountry}&to=${secondCountry}`
+          `https://api.frankfurter.app/latest?amount=${value}&from=${firstCountry}&to=${secondCountry}`,
+          { signal: controller.signal }
         );
         const data = await res.json();
         setRate(data.rates[`${secondCountry}`]);
@@ -29,6 +31,7 @@ function App() {
     if (firstCountry === secondCountry) return setRate(value);
     // calling
     fetching();
+    return () => controller.abort();
   }, [value, firstCountry, secondCountry]);
   return (
     <div className="container">
@@ -38,8 +41,7 @@ function App() {
       <div className="mt-3">
         <label className="form-label">Enter Your Currency : </label>
         <input
-          disabled={isLoading}
-          value={value}
+          value={isNaN(value) ? "" : +value}
           onChange={(e) => setValue(Number.parseInt(e.target.value))}
           type="text"
           className="form-control"
